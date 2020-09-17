@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS `result` (
 -- Exportiere Struktur von Tabelle quizzer.users
 CREATE TABLE IF NOT EXISTS `users` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `username` varchar(255) NOT NULL,
+  `username` varchar(255) UNIQUE NOT NULL,
   `hashedpw` binary(1) NOT NULL,
   `role` tinyint(4) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
