@@ -1,4 +1,11 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Delete,
+  Param,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { AppDataDao, UserDao } from './daos/AppDataDao';
 
@@ -18,5 +25,10 @@ export class AppController {
       params.password,
       params.role,
     );
+  }
+
+  @Delete('user/:id')
+  async deleteUser(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    await this.appService.deleteUser(id);
   }
 }

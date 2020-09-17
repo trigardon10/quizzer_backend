@@ -56,4 +56,19 @@ export class AppService {
     const user = await userRepo.save(new User(name, hashedpw, role));
     return { id: user.id, name: user.name, role: user.role };
   }
+
+  // TODO: Rolle des Senders überprüfen
+  @Transaction()
+  async deleteUser(
+    id: number,
+    @TransactionRepository(User) userRepo?: Repository<User>,
+  ): Promise<void> {
+    const user = await userRepo.findOneOrFail({
+      where: {
+        id,
+      },
+    });
+
+    await userRepo.remove(user);
+  }
 }
