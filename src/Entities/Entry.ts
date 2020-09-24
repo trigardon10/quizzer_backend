@@ -19,4 +19,12 @@ export class Entry {
 
     @Column()
     answer: string;
+
+    constructor(creatorId: number, question: string, hint: string, answer: string){
+        this.creatorId = creatorId;
+        this.question = question;
+        this.hint = hint;
+        this.answer = answer;
+        this.categoryId = null;
+    }
 }

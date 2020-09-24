@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { AppDataDao, UserDao } from './daos/AppDataDao';
+import { Entry } from './Entities/Entry';
 
 @Controller()
 export class AppController {
@@ -30,5 +31,30 @@ export class AppController {
   @Delete('user/:id')
   async deleteUser(@Param('id', ParseIntPipe) id: number): Promise<void> {
     await this.appService.deleteUser(id);
+  }
+
+  @Post('entry')
+  async addEntry(@Body() params): Promise<Entry> {
+    return this.appService.addEntry(
+      params.question,
+      params.hint,
+      params.answer,
+      1 // TODO UserId
+    );
+  }
+
+  @Post('entry/:id')
+  async editEntry(@Param('id', ParseIntPipe) id: number, @Body() params): Promise<Entry> {
+    return this.appService.editEntry(
+      id,
+      params.question,
+      params.hint,
+      params.answer
+    );
+  }
+
+  @Delete('entry/:id')
+  async deleteEntry(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    await this.appService.deleteEntry(id);
   }
 }
