@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { User, USERROLE } from './Entities/User';
 import { Repository, Transaction, TransactionRepository } from 'typeorm';
 import { createHash } from 'crypto';
@@ -65,11 +65,17 @@ export class AppService {
   // TODO: Rolle des Senders überprüfen
   @Transaction()
   async addUser(
+    initiator: User,
     name: string,
     password: string,
     role: USERROLE,
     @TransactionRepository(User) userRepo?: Repository<User>,
   ): Promise<UserDao> {
+
+    if(initiator.role !== USERROLE.ADMIN) {
+      throw new UnauthorizedException();
+    }
+
     const hashedpw: Buffer = createHash('sha256')
       .update(password)
       .digest();
@@ -80,9 +86,15 @@ export class AppService {
   // TODO: Rolle des Senders überprüfen
   @Transaction()
   async deleteUser(
+    initiator: User,
     id: number,
     @TransactionRepository(User) userRepo?: Repository<User>,
   ): Promise<void> {
+
+    if(initiator.role !== USERROLE.ADMIN) {
+      throw new UnauthorizedException();
+    }
+
     const user = await userRepo.findOneOrFail({
       where: {
         id,
@@ -95,19 +107,20 @@ export class AppService {
   // TODO: Rolle des Senders überprüfen
   @Transaction()
   async addEntry(
+    initiator: User,
     question: string,
     hint: string,
     answer: string,
-    userId: number,
     @TransactionRepository(Entry) entryRepo?: Repository<Entry>,
   ): Promise<Entry> {
-    const entry: Entry = new Entry(userId, question, hint, answer);
+    const entry: Entry = new Entry(initiator.id, question, hint, answer);
     return entryRepo.save(entry);
   }
 
   // TODO: Rolle des Senders und creatorid überprüfen
   @Transaction()
   async editEntry(
+    initiator: User,
     id: number,
     question: string,
     hint: string,
@@ -115,6 +128,11 @@ export class AppService {
     @TransactionRepository(Entry) entryRepo?: Repository<Entry>,
   ): Promise<Entry> {
     const entry = await entryRepo.findOneOrFail(id);
+
+    if(entry.creatorId !== initiator.id) {
+      throw new UnauthorizedException();
+    }
+
     entry.question = question;
     entry.hint = hint;
     entry.answer = answer;
@@ -124,6 +142,7 @@ export class AppService {
   // TODO: Rolle des Senders überprüfen
   @Transaction()
   async deleteEntry(
+    initiator: User,
     id: number,
     @TransactionRepository(Entry) entryRepo?: Repository<Entry>,
   ): Promise<void> {
@@ -132,6 +151,10 @@ export class AppService {
         id,
       },
     });
+
+    if(entry.creatorId !== initiator.id) {
+      throw new UnauthorizedException();
+    }
 
     await entryRepo.remove(entry);
   }

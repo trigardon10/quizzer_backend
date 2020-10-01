@@ -4,8 +4,9 @@ import {
   Body,
   Delete,
   Param,
-  ParseIntPipe,
+  ParseIntPipe, Req
 } from '@nestjs/common';
+import { appRequest } from './app.middleware';
 import { AppService } from './app.service';
 import { AppDataDao, UserDao } from './daos/AppDataDao';
 import { Entry } from './Entities/Entry';
@@ -20,8 +21,9 @@ export class AppController {
   }
 
   @Post('user')
-  async addUser(@Body() params): Promise<UserDao> {
+  async addUser(@Body() params, @Req() request: appRequest): Promise<UserDao> {
     return this.appService.addUser(
+      request.user,
       params.username,
       params.password,
       params.role,
@@ -29,23 +31,25 @@ export class AppController {
   }
 
   @Delete('user/:id')
-  async deleteUser(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    await this.appService.deleteUser(id);
+  async deleteUser(@Param('id', ParseIntPipe) id: number, @Req() request: appRequest): Promise<void> {
+    await this.appService.deleteUser(
+      request.user,id);
   }
 
   @Post('entry')
-  async addEntry(@Body() params): Promise<Entry> {
+  async addEntry(@Body() params, @Req() request: appRequest): Promise<Entry> {
     return this.appService.addEntry(
+      request.user,
       params.question,
       params.hint,
-      params.answer,
-      1 // TODO UserId
+      params.answer
     );
   }
 
   @Post('entry/:id')
-  async editEntry(@Param('id', ParseIntPipe) id: number, @Body() params): Promise<Entry> {
+  async editEntry(@Param('id', ParseIntPipe) id: number, @Body() params, @Req() request: appRequest): Promise<Entry> {
     return this.appService.editEntry(
+      request.user,
       id,
       params.question,
       params.hint,
@@ -54,7 +58,8 @@ export class AppController {
   }
 
   @Delete('entry/:id')
-  async deleteEntry(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    await this.appService.deleteEntry(id);
+  async deleteEntry(@Param('id', ParseIntPipe) id: number, @Req() request: appRequest): Promise<void> {
+    await this.appService.deleteEntry(
+      request.user,id);
   }
 }

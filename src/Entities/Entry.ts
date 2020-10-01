@@ -8,13 +8,13 @@ export class Entry {
     @Column({name: 'creator_id'})
     creatorId: number;
 
-    @Column({name: 'category_id'})
+    @Column({name: 'category_id', nullable: true})
     categoryId: number;
 
     @Column()
     question: string;
 
-    @Column()
+    @Column({nullable: true})
     hint: string;
 
     @Column()

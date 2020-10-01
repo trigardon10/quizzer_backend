@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,6 +8,7 @@ import { Entry } from './Entities/Entry';
 import { Result } from './Entities/Result';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { AppMiddleware } from './app.middleware';
 
 @Module({
   imports: [
@@ -24,9 +25,19 @@ import { JwtModule } from '@nestjs/jwt';
       entities: [User, Category, Entry, Result],
       synchronize: true,
     }),
+    TypeOrmModule.forFeature([User, Category, Entry, Result]),
     JwtModule.register({ secret: process.env.JWT_SECRET }),
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+  .apply(AppMiddleware)
+  .exclude(
+    { path: 'login', method: RequestMethod.POST },
+  )
+  .forRoutes(AppController);
+  }
+}
