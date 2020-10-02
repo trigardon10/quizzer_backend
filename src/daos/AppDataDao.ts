@@ -23,5 +23,5 @@ export interface EntryDao {
   question: string;
   hint: string;
   answer: string;
-  result?: Result;
+  result?: number;
 }

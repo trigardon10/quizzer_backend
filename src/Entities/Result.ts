@@ -10,4 +10,10 @@ export class Result {
 
     @Column()
     value: number;
+
+    constructor(userId: number, entryId: number, value: number) {
+        this.userId = userId;
+        this.entryId = entryId;
+        this.value = value;
+    }
 }

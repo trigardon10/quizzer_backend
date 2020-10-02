@@ -51,7 +51,7 @@ export class AppService {
     const entryDaos: Record<number, EntryDao> = {};
 
     entries.forEach(entry => entryDaos[entry.id] = entry);
-    results.forEach(result => entryDaos[result.entryId] ? entryDaos[result.entryId].result = result : null)
+    results.forEach(result => entryDaos[result.entryId] ? entryDaos[result.entryId].result = result.value : null)
 
     const categories: Record<number, Category> = await categoryRepo.find().then(cats => {
       const map: Record<number, Category> = {};
@@ -62,7 +62,6 @@ export class AppService {
     return { users, token, currentUser: user.id, entries: entryDaos, categories };
   }
 
-  // TODO: Rolle des Senders überprüfen
   @Transaction()
   async addUser(
     initiator: User,
@@ -83,7 +82,6 @@ export class AppService {
     return { id: user.id, name: user.name, role: user.role };
   }
 
-  // TODO: Rolle des Senders überprüfen
   @Transaction()
   async deleteUser(
     initiator: User,
@@ -104,7 +102,6 @@ export class AppService {
     await userRepo.remove(user);
   }
 
-  // TODO: Rolle des Senders überprüfen
   @Transaction()
   async addEntry(
     initiator: User,
@@ -117,7 +114,6 @@ export class AppService {
     return entryRepo.save(entry);
   }
 
-  // TODO: Rolle des Senders und creatorid überprüfen
   @Transaction()
   async editEntry(
     initiator: User,
@@ -139,7 +135,6 @@ export class AppService {
     return entryRepo.save(entry);
   }
 
-  // TODO: Rolle des Senders überprüfen
   @Transaction()
   async deleteEntry(
     initiator: User,
@@ -157,5 +152,15 @@ export class AppService {
     }
 
     await entryRepo.remove(entry);
+  }
+
+  @Transaction()
+  async addResults(
+    initiator: User,
+    results: Record<number, number>,
+    @TransactionRepository(Result) resultRepo?: Repository<Result>,
+  ): Promise<Result[]> {
+    const resArray: Result[] = Object.keys(results).map(entryIdStr => new Result(initiator.id, parseInt(entryIdStr), results[entryIdStr]));
+    return resultRepo.save(resArray);
   }
 }

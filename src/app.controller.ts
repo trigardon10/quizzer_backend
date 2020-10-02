@@ -10,6 +10,7 @@ import { appRequest } from './app.middleware';
 import { AppService } from './app.service';
 import { AppDataDao, UserDao } from './daos/AppDataDao';
 import { Entry } from './Entities/Entry';
+import { Result } from './Entities/Result';
 
 @Controller()
 export class AppController {
@@ -61,5 +62,13 @@ export class AppController {
   async deleteEntry(@Param('id', ParseIntPipe) id: number, @Req() request: appRequest): Promise<void> {
     await this.appService.deleteEntry(
       request.user,id);
+  }
+
+  @Post('results')
+  async addResults(@Body() results, @Req() request: appRequest): Promise<Result[]> {
+    return this.appService.addResults(
+      request.user,
+      results
+    );
   }
 }
