@@ -2,9 +2,13 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('category')
 export class Category {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    answer: string;
+  @Column()
+  name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
 }

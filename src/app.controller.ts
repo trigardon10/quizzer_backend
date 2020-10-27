@@ -4,11 +4,13 @@ import {
   Body,
   Delete,
   Param,
-  ParseIntPipe, Req
+  ParseIntPipe,
+  Req,
 } from '@nestjs/common';
 import { appRequest } from './app.middleware';
 import { AppService } from './app.service';
 import { AppDataDao, UserDao } from './daos/AppDataDao';
+import { Category } from './Entities/Category';
 import { Entry } from './Entities/Entry';
 import { Result } from './Entities/Result';
 
@@ -32,9 +34,11 @@ export class AppController {
   }
 
   @Delete('user/:id')
-  async deleteUser(@Param('id', ParseIntPipe) id: number, @Req() request: appRequest): Promise<void> {
-    await this.appService.deleteUser(
-      request.user,id);
+  async deleteUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: appRequest,
+  ): Promise<void> {
+    await this.appService.deleteUser(request.user, id);
   }
 
   @Post('entry')
@@ -43,32 +47,64 @@ export class AppController {
       request.user,
       params.question,
       params.hint,
-      params.answer
+      params.answer,
     );
   }
 
   @Post('entry/:id')
-  async editEntry(@Param('id', ParseIntPipe) id: number, @Body() params, @Req() request: appRequest): Promise<Entry> {
+  async editEntry(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() params,
+    @Req() request: appRequest,
+  ): Promise<Entry> {
     return this.appService.editEntry(
       request.user,
       id,
       params.question,
       params.hint,
-      params.answer
+      params.answer,
+      params.categoryId,
     );
   }
 
   @Delete('entry/:id')
-  async deleteEntry(@Param('id', ParseIntPipe) id: number, @Req() request: appRequest): Promise<void> {
-    await this.appService.deleteEntry(
-      request.user,id);
+  async deleteEntry(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: appRequest,
+  ): Promise<void> {
+    await this.appService.deleteEntry(request.user, id);
+  }
+
+  @Post('category')
+  async addCategory(
+    @Body() params,
+    @Req() request: appRequest,
+  ): Promise<Category> {
+    return this.appService.addCategory(request.user, params.name);
+  }
+
+  @Post('category/:id')
+  async editCategory(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() params,
+    @Req() request: appRequest,
+  ): Promise<Category> {
+    return this.appService.editCategory(request.user, id, params.name);
+  }
+
+  @Delete('category/:id')
+  async deleteCategory(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: appRequest,
+  ): Promise<void> {
+    await this.appService.deleteCategory(request.user, id);
   }
 
   @Post('results')
-  async addResults(@Body() results, @Req() request: appRequest): Promise<Result[]> {
-    return this.appService.addResults(
-      request.user,
-      results
-    );
+  async addResults(
+    @Body() results,
+    @Req() request: appRequest,
+  ): Promise<Result[]> {
+    return this.appService.addResults(request.user, results);
   }
 }

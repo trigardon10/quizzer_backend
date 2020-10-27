@@ -46,20 +46,34 @@ export class AppService {
     const token = this.jwtService.sign({ id: user.id });
 
     const entries: Entry[] = await entryRepo.find();
-    const results: Result[] = await resultRepo.find({where: {userId: user.id}})
+    const results: Result[] = await resultRepo.find({
+      where: { userId: user.id },
+    });
 
     const entryDaos: Record<number, EntryDao> = {};
 
-    entries.forEach(entry => entryDaos[entry.id] = entry);
-    results.forEach(result => entryDaos[result.entryId] ? entryDaos[result.entryId].result = result.value : null)
+    entries.forEach(entry => (entryDaos[entry.id] = entry));
+    results.forEach(result =>
+      entryDaos[result.entryId]
+        ? (entryDaos[result.entryId].result = result.value)
+        : null,
+    );
 
-    const categories: Record<number, Category> = await categoryRepo.find().then(cats => {
-      const map: Record<number, Category> = {};
-      cats.forEach(cat => map[cat.id] = cat);
-      return map;
-    })
+    const categories: Record<number, Category> = await categoryRepo
+      .find()
+      .then(cats => {
+        const map: Record<number, Category> = {};
+        cats.forEach(cat => (map[cat.id] = cat));
+        return map;
+      });
 
-    return { users, token, currentUser: user.id, entries: entryDaos, categories };
+    return {
+      users,
+      token,
+      currentUser: user.id,
+      entries: entryDaos,
+      categories,
+    };
   }
 
   @Transaction()
@@ -70,8 +84,7 @@ export class AppService {
     role: USERROLE,
     @TransactionRepository(User) userRepo?: Repository<User>,
   ): Promise<UserDao> {
-
-    if(initiator.role !== USERROLE.ADMIN) {
+    if (initiator.role !== USERROLE.ADMIN) {
       throw new UnauthorizedException();
     }
 
@@ -88,8 +101,7 @@ export class AppService {
     id: number,
     @TransactionRepository(User) userRepo?: Repository<User>,
   ): Promise<void> {
-
-    if(initiator.role !== USERROLE.ADMIN) {
+    if (initiator.role !== USERROLE.ADMIN) {
       throw new UnauthorizedException();
     }
 
@@ -121,17 +133,19 @@ export class AppService {
     question: string,
     hint: string,
     answer: string,
+    categoryId: number,
     @TransactionRepository(Entry) entryRepo?: Repository<Entry>,
   ): Promise<Entry> {
     const entry = await entryRepo.findOneOrFail(id);
 
-    if(entry.creatorId !== initiator.id) {
+    if (entry.creatorId !== initiator.id) {
       throw new UnauthorizedException();
     }
 
     entry.question = question;
     entry.hint = hint;
     entry.answer = answer;
+    entry.categoryId = categoryId;
     return entryRepo.save(entry);
   }
 
@@ -147,11 +161,49 @@ export class AppService {
       },
     });
 
-    if(entry.creatorId !== initiator.id) {
+    if (entry.creatorId !== initiator.id) {
       throw new UnauthorizedException();
     }
 
     await entryRepo.remove(entry);
+  }
+
+  @Transaction()
+  async addCategory(
+    initiator: User,
+    name: string,
+    @TransactionRepository(Category) categoryRepo?: Repository<Category>,
+  ): Promise<Category> {
+    const cat: Category = new Category(name);
+    return categoryRepo.save(cat);
+  }
+
+  @Transaction()
+  async editCategory(
+    initiator: User,
+    id: number,
+    name: string,
+    @TransactionRepository(Category) categoryRepo?: Repository<Category>,
+  ): Promise<Category> {
+    const cat = await categoryRepo.findOneOrFail(id);
+
+    cat.name = name;
+    return categoryRepo.save(cat);
+  }
+
+  @Transaction()
+  async deleteCategory(
+    initiator: User,
+    id: number,
+    @TransactionRepository(Category) categoryRepo?: Repository<Category>,
+  ): Promise<void> {
+    const cat = await categoryRepo.findOneOrFail({
+      where: {
+        id,
+      },
+    });
+
+    await categoryRepo.remove(cat);
   }
 
   @Transaction()
@@ -160,7 +212,10 @@ export class AppService {
     results: Record<number, number>,
     @TransactionRepository(Result) resultRepo?: Repository<Result>,
   ): Promise<Result[]> {
-    const resArray: Result[] = Object.keys(results).map(entryIdStr => new Result(initiator.id, parseInt(entryIdStr), results[entryIdStr]));
+    const resArray: Result[] = Object.keys(results).map(
+      entryIdStr =>
+        new Result(initiator.id, parseInt(entryIdStr), results[entryIdStr]),
+    );
     return resultRepo.save(resArray);
   }
 }
